@@ -39,7 +39,7 @@ document.getElementById('submit-btn').onclick = async () => {
     responseBox.textContent = "Loading...";
 
     // ⚠️ SECURITY ALERT: Replace with your own secure backend proxy endpoint.
-    const apiUrl = "YOUR_BACKEND_PROXY_ENDPOINT";
+    const apiUrl = "tutor.brookswinchell.workers.dev";
 
     const res = await fetch(apiUrl, {
         method: "POST",
