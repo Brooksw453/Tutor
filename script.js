@@ -1,69 +1,54 @@
-// Get the current subject from URL (e.g., writing.html?subject=Writing)
-const params = new URLSearchParams(window.location.search);
-const subject = params.get('subject') || 'Writing';
+// script.js
+// Note: Insert your OpenAI API key in the apiKey variable below.
+const apiKey = "YOUR_OPENAI_API_KEY_HERE";  // <-- secure this as described below
 
-// Define your subjects and system prompts
-const subjects = {
-    "Writing": {
-        system: "You are a supportive writing tutor. Assist students with brainstorming, outlining, drafting, feedback, editing, research, and citations. Do not write for them directly.",
-        suggestions: ["Help me brainstorm topics", "Give feedback on my draft", "Help me with my citations"]
-    },
-    "Math": {
-        system: "You are a supportive math tutor helping students solve math problems, understand concepts, and study effectively. Clearly guide them step-by-step without providing answers outright.",
-        suggestions: ["Explain quadratic equations", "How do I find derivatives?", "Tips for solving integrals"]
-    },
-    "Science": {
-        system: "You are a supportive science tutor assisting students in understanding scientific concepts, structuring experiments, and fostering critical thinking.",
-        suggestions: ["Explain photosynthesis", "Guide me through a science experiment", "What is Newton's Second Law?"]
-    },
-    "Engineering": {
-        system: "You are a helpful engineering tutor guiding students through engineering problems, design principles, and practical applications clearly and step-by-step.",
-        suggestions: ["Explain basic circuit design", "How do I approach mechanical design problems?", "Help me understand thermodynamics"]
+async function sendQuery(prefill) {
+  const queryInput = document.getElementById('queryInput');
+  const userQuery = prefill || queryInput.value.trim();
+  if (!userQuery) {
+    return;  // don't send empty queries
+  }
+
+  // Prepare the message payload for OpenAI API
+  const messages = [
+    { role: "system", content: typeof systemPrompt !== 'undefined' ? systemPrompt : "" },
+    { role: "user", content: userQuery }
+  ];
+
+  // Optionally, you can clear the input after sending
+  queryInput.value = "";
+
+  // Show a placeholder or loading message in the response area
+  const responseDiv = document.getElementById('response');
+  responseDiv.textContent = "Thinking...";
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: messages,
+        max_tokens: 500,     // limit the response length (adjust as needed)
+        temperature: 0.7     // adjust creativity of the response
+      })
+    });
+    const data = await response.json();
+    if (data.error) {
+      // Display error from API (e.g., invalid key or rate limit)
+      responseDiv.textContent = "Error: " + data.error.message;
+    } else if (data.choices && data.choices.length > 0) {
+      // Put the assistant's reply into the response div
+      responseDiv.textContent = data.choices[0].message.content;
+    } else {
+      responseDiv.textContent = "[No response]";
     }
-};
-
-// Populate suggested prompts
-const suggestionDiv = document.getElementById('suggestions');
-subjects[subject].suggestions.forEach(suggestion => {
-    const btn = document.createElement('button');
-    btn.textContent = suggestion;
-    btn.classList.add('btn', 'suggestion');
-    btn.onclick = () => {
-        document.getElementById('user-input').value = suggestion;
-        sendQuery();  // send query automatically upon clicking suggestion
-    };
-    suggestionDiv.appendChild(btn);
-});
-
-// Function to send query
-async function sendQuery() {
-    const prompt = document.getElementById('user-input').value;
-    const responseBox = document.getElementById('response');
-
-    if (!prompt) return;
-
-    responseBox.textContent = "Thinking...";
-
-    // Replace with your Cloudflare Worker URL
-    const apiUrl = 'https://tutor-worker.brookswinchell.workers.dev/';
-
-    try {
-        const res = await fetch(apiUrl, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                subject: subject,
-                prompt: prompt,
-                system: subjects[subject].system
-            })
-        });
-
-        const data = await res.json();
-        responseBox.textContent = data.response;
-    } catch (err) {
-        responseBox.textContent = "Error fetching response: " + err.message;
-    }
+  } catch (err) {
+    // Network or other error
+    console.error("Request failed:", err);
+    responseDiv.textContent = "Error: " + err.message;
+  }
 }
-
-// Attach function to submit button
-document.getElementById('submit-btn').onclick = sendQuery;
