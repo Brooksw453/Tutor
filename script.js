@@ -1,6 +1,6 @@
 // Get the current subject from URL (e.g., writing.html?subject=Writing)
 const params = new URLSearchParams(window.location.search);
-const subject = params.get('subject');
+const subject = params.get('subject') || 'Writing';
 
 // Define your subjects and system prompts
 const subjects = {
