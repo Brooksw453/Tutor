@@ -1,25 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tutoring Support - Subject</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Writing Tutor</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div class="container">
-    <a href="index.html" class="back-btn">← Back</a>
-    <h1 id="subject-title">Subject</h1>
 
-    <div class="suggestions" id="suggestions"></div>
+  <h1>Writing Tutor</h1>
+  <!-- Search box and submit button -->
+  <div class="query-section">
+    <input type="text" id="queryInput" placeholder="Ask a question..." />
+    <button class="btn primary" onclick="sendQuery()">Ask</button>
+  </div>
 
-    <input type="text" id="user-input" placeholder="Ask your question here..." />
+  <!-- Suggested queries for Writing tutor -->
+  <div class="suggestions">
+    <p>Try these:</p>
+    <button type="button" class="btn suggestion" 
+            onclick="sendQuery('How do I outline an essay?')">
+      How do I outline an essay?
+    </button>
+    <button type="button" class="btn suggestion" 
+            onclick="sendQuery('Can you help brainstorm ideas for a story?')">
+      Brainstorm ideas for a story
+    </button>
+    <button type="button" class="btn suggestion" 
+            onclick="sendQuery('How should I cite sources in APA format?')">
+      Citing sources in APA format
+    </button>
+  </div>
 
-    <button id="submit-btn">Ask Tutor</button>
+  <!-- Area to display the AI tutor's response -->
+  <div id="response" class="output"></div>
 
-    <div class="response" id="response-box"></div>
-</div>
+  <!-- System prompt for the Writing tutor (hidden from UI, used in script) -->
+  <script>
+    const systemPrompt = "You are a Writing Tutor. Assist with brainstorming, outlining, drafting, feedback, and citations. Do not write for the student but help shape their work.";
+  </script>
+  <script src="script.js"></script>
 
-<script src="script.js"></script>
 </body>
 </html>
