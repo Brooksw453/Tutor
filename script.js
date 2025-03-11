@@ -1,5 +1,9 @@
+// Get URL parameter for subject
 const params = new URLSearchParams(window.location.search);
 const subject = params.get('subject');
+
+// Default to "Writing" if subject param is missing
+const currentSubject = subjects[subject] ? subject : "Writing";
 
 const subjects = {
     "Writing": {
@@ -8,7 +12,7 @@ const subjects = {
     },
     "Math": {
         system: "You are a supportive math tutor assisting students with solving math problems, understanding concepts, and studying effectively. Guide them clearly step-by-step.",
-        suggestions: ["Explain how to solve quadratic equations", "Help me understand derivatives", "Guide me through this algebra problem"]
+        suggestions: ["Explain quadratic equations", "Help me understand derivatives", "Guide me through this algebra problem"]
     },
     "Science": {
         system: "You are a helpful science tutor explaining concepts, experiments, scientific methods, and guiding students through scientific topics clearly.",
@@ -20,15 +24,20 @@ const subjects = {
     }
 };
 
-document.getElementById('subject-title').innerText = subject + " Tutor";
+document.getElementById('subject-title').innerText = currentSubject + " Tutor";
 
+// Corrected definition of suggestionDiv
 const suggestionDiv = document.getElementById('suggestions');
-subjects[subject].suggestions.forEach(suggestion => {
+suggestionDiv.innerHTML = ""; // clear existing suggestions
+
+// Create suggestion buttons
+subjects[currentSubject].suggestions.forEach(suggestion => {
     const btn = document.createElement('button');
     btn.className = "suggestion-btn";
     btn.textContent = suggestion;
     btn.onclick = () => {
         document.getElementById('user-input').value = suggestion;
+        document.getElementById('submit-btn').click(); // automatically submit
     };
     suggestionDiv.appendChild(btn);
 });
@@ -36,21 +45,41 @@ subjects[subject].suggestions.forEach(suggestion => {
 document.getElementById('submit-btn').onclick = async () => {
     const prompt = document.getElementById('user-input').value;
     const responseBox = document.getElementById('response-box');
+
+    if (!prompt) {
+        responseBox.textContent = "Please enter a prompt.";
+        return;
+    }
+
     responseBox.textContent = "Loading...";
 
-    // ⚠️ SECURITY ALERT: Replace with your own secure backend proxy endpoint.
-    const apiUrl = "api-worker.brookswinchell.workers.dev";
+    // Correct API URL with protocol (HTTPS required)
+    const apiUrl = "https://api-worker.brookswinchell.workers.dev";
 
-    const res = await fetch(apiUrl, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            subject: subject,
-            prompt: prompt,
-            system: subjects[subject].system
-        })
-    });
+    try {
+        const res = await fetch(apiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                subject: currentSubject,
+                prompt: prompt,
+                system: subjects[currentSubject].system
+            })
+        });
 
-    const data = await res.json();
-    responseBox.textContent = data.response;
+        if (!res.ok) {
+            responseBox.textContent = `Server error: ${res.status}`;
+            return;
+        }
+
+        const data = await res.json();
+
+        if (data.response) {
+            responseBox.textContent = data.response;
+        } else {
+            responseBox.textContent = "Unexpected response format from server.";
+        }
+    } catch (err) {
+        responseBox.textContent = "Error: " + err.message;
+    }
 };
