@@ -45,7 +45,7 @@ async function sendQuery() {
     responseBox.textContent = "Thinking...";
 
     // Replace with your Cloudflare Worker URL
-    const apiUrl = 'https://api-worker.brookswinchell.workers.dev/';
+    const apiUrl = 'https://tutor-worker.brookswinchell.workers.dev/';
 
     try {
         const res = await fetch(apiUrl, {
